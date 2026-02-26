@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My First Rubik's Cube</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            text-align: center; 
+            padding: 50px;
+        }
+        .color-box {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            margin: 20px auto;
+            border: 2px solid black;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rubik's Cube Color Selector</h1>
+    <img src="https://cdn.shopify.com/s/files/1/0270/0342/0758/files/Notation_for_rubiks_cube_480x480.png?v=1669712518" alt="Rubik's cube notation" />
+    <div class="color-box" onclick="changeColor(this)"></div>
+    
+    <script>
+        const colors = ['red', 'blue', 'green', 'yellow', 'orange', 'white'];
+        let currentIndex = 0;
+        
+        function changeColor(box) {
+            currentIndex = (currentIndex + 1) % colors.length;
+            box.style.backgroundColor = colors[currentIndex];
+        }
+    </script>
+</body>
+</html>
