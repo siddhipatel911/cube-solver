@@ -10,11 +10,13 @@ class CubeSolverGUI:
         self.current_face = tk.StringVar(value=FACE_ORDER[0]) #sets default face to "U" when GUI starts
         self.face_frames = {} #creates a dictionary that will store a 3x3 grid frame for each face
         self.faces = {face: [""] * 9 for face in FACE_ORDER} #internal cube model, each face with 9 stickers
-        self.create_face_selector()
-        self.create_face_grid()
+        self.create_face_selector() #builds row of buttons
+        self.create_face_grid() 
         self.create_solve_button()
+        self.show_current_face()
     
     def create_face_selector(self):
+        #Frame = container box, pack() = places it in window, pady=5 --> vertical spacing
         frame = tk.Frame(self.root)
         frame.pack(pady=5)
 
@@ -27,6 +29,8 @@ class CubeSolverGUI:
                 width=4
             )
             button.pack(side=tk.LEFT, padx=2)
+
+        self.current_face.trace_add("write", lambda *args: self.show_current_face())
 
     def create_face_grid(self):
         self.grid_frame = tk.Frame(self.root)
@@ -49,9 +53,10 @@ class CubeSolverGUI:
 
     def show_current_face(self):
         for face, frame in self.face_frames.items():
-            frame.pack_forget()
+            frame.pack_forget()  # Hide all faces
 
-        self.face_frames[self.current_face.get()].pack()
+        selected = self.current_face.get()
+        self.face_frames[selected].pack()  # Show only selected face
 
     def on_square_click(self, face, index):
         # cycle through colors
@@ -64,14 +69,23 @@ class CubeSolverGUI:
         btn = self.face_frames[face].grid_slaves(row=index//3, column=index%3)[0]
         btn.config(bg=COLOR_PALETTE[nxt], text=nxt)
 
-    def get_cube_string(self):
+    def convert_colors_to_faces(self):
+        # Get center color of each face
+        center_map = {}
         order = ["U","R","F","D","L","B"]
+
+        for face in order:
+            center_color = self.faces[face][4]  # index 4 is center
+            center_map[center_color] = face
+
         cube_str = ""
+
         for face in order:
             for color in self.faces[face]:
-                if color == "":
-                    raise ValueError("Not all squares are filled!")
-                cube_str += color
+                if color not in center_map:
+                    raise ValueError("Invalid color configuration")
+                cube_str += center_map[color]
+
         return cube_str
 
     def create_solve_button(self):
@@ -80,7 +94,7 @@ class CubeSolverGUI:
     
     def on_solve(self):
         try:
-            cube = self.get_cube_string()
+            cube = self.convert_colors_to_faces()
             solution = kociemba.solve(cube)
             tkinter.messagebox.showinfo("Solution", solution)
         except Exception as e:
