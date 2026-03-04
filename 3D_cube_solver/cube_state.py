@@ -62,6 +62,27 @@ class CubeState:
 
         return result
     
+    def set_state_from_nxt_string(self, s):
+        # NXC code sends faces in order: L, F, R, B, U, D
+        # Each face has 9 characters.
+        if len(s) < 54:
+            print("Error: NXT string too short")
+            return
+
+        self.faces["L"] = list(s[0:9])
+        self.faces["F"] = list(s[9:18])
+        self.faces["R"] = list(s[18:27])
+        self.faces["B"] = list(s[27:36])
+        self.faces["U"] = list(s[36:45])
+        self.faces["D"] = list(s[45:54])
+
+    def set_face(self, face, stickers):
+        """
+        Updates a single face with a string of 9 characters.
+        """
+        if face in self.faces and len(stickers) == 9:
+            self.faces[face] = list(stickers)
+
     def rotate_face_clockwise(self, face):
         f = self.faces[face]
         self.faces[face] = [

@@ -4,6 +4,7 @@ from OpenGL.GLU import *
 import numpy as np
 from renderer import Renderer
 import kociemba
+from nxt_controller import NXTController
 
 WIDTH = 800
 HEIGHT = 600
@@ -24,12 +25,36 @@ def main():
     glutInit()
 
     renderer = Renderer()
+    nxt_robot = NXTController()
 
     last_x = 0
     last_y = 0
     dragging = False
     drag_threshold = 3  # pixels
     mouse_moved = False
+
+    def perform_solve():
+        cube = renderer.cube
+        # Note: When coming from NXT, we might trust the input, 
+        # but validation is still good practice.
+        try:
+            cube_string = cube.to_kociemba_string()
+            solution = kociemba.solve(cube_string)
+            print("Solution found:", solution)
+
+            renderer.solution_moves = solution.split()
+            renderer.current_move_index = 0
+            renderer.playback_mode = True
+            renderer.rotation_x = 25
+            renderer.rotation_y = 30
+            renderer.animating = False
+            renderer.current_move = None
+            renderer.animation_angle = 0
+            
+            if nxt_robot.is_connected():
+                nxt_robot.send_solution(renderer.solution_moves)
+        except Exception as e:
+            print("Solver Error:", e)
 
     def handle_picking(window):
         x, y = glfw.get_cursor_pos(window)
@@ -56,25 +81,23 @@ def main():
                 if not cube.has_valid_color_count():
                     print("Invalid colour counts!")
                     return
-                try:
-                    cube_string = cube.to_kociemba_string()
-                    solution = kociemba.solve(cube_string)
-                    print("Solution:", solution)
-
-                    renderer.solution_moves = solution.split()
-                    renderer.current_move_index = 0
-                    renderer.playback_mode = True
-                    renderer.rotation_x = 25
-                    renderer.rotation_y = 30
-
-                    renderer.animating = False
-                    renderer.current_move = None
-                    renderer.animation_angle = 0
-                except Exception as e:
-                    print("Invalid cube state:", e)
+                perform_solve()
 
                 return
             
+        # Check Connect button
+        if renderer.connect_button:
+            cx, cy, cw, ch = renderer.connect_button
+            if cx <= x <= cx+cw and cy <= y <= cy+ch:
+                if not nxt_robot.is_connected():
+                    renderer.is_connected = nxt_robot.connect()
+                    if renderer.is_connected:
+                        renderer.scanned_faces.clear() # Reset scan status on new connection
+                else:
+                    nxt_robot.disconnect()
+                    renderer.is_connected = False
+                return
+
         # Check Next button
         if renderer.next_button:
             bx, by, bw, bh = renderer.next_button
@@ -155,11 +178,36 @@ def main():
     glfw.set_mouse_button_callback(window, mouse_button_callback)
     glfw.set_cursor_pos_callback(window, cursor_position_callback)
 
+    frame_count = 0
+
     while not glfw.window_should_close(window):
         glClearColor(0.85, 0.9, 0.95, 1.0)  # light background
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
 
+        # Poll NXT status every ~30 frames
+        frame_count += 1
+        if frame_count % 10 == 0 and nxt_robot.is_connected():
+            msg = nxt_robot.check_mailbox()
+            if msg:
+                try:
+                    msg_str = msg.decode('ascii').replace('\x00', '')
+                    print("NXT Message:", msg_str)
+
+                    if msg_str.startswith("SCANNED"):
+                        # Protocol: SCANNED <FaceName>
+                        parts = msg_str.split()
+                        if len(parts) >= 2:
+                            renderer.scanned_faces.add(parts[1])
+                            nxt_robot.current_status = f"Scanned Face {parts[1]}"
+                    elif len(msg_str) >= 54:
+                        renderer.cube.set_state_from_nxt_string(msg_str)
+                        nxt_robot.current_status = "Solving..."
+                        perform_solve()
+                except Exception as e:
+                    print("Error parsing NXT message:", e)
+
+        renderer.nxt_status_text = nxt_robot.current_status
         renderer.draw()
 
         glfw.swap_buffers(window)

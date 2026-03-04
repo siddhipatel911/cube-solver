@@ -14,13 +14,17 @@ class Renderer:
         self.palette_colors = ["W", "R", "G", "B", "O", "Y"]
         self.palette_positions = []  # will store clickable areas
         self.solve_button = None
+        self.connect_button = None
+        self.is_connected = False
         self.solution_moves = []
+        self.scanned_faces = set()
         self.current_move_index = 0
         self.next_button = None
         self.animating = False
         self.current_move = None
         self.animation_angle = 0
-        self.animation_speed = 1.8
+        self.animation_speed = 1
+        self.nxt_status_text = "Disconnected"
         self.playback_mode = False
 
     def draw(self):
@@ -269,6 +273,13 @@ class Renderer:
             "O": (1,0.5,0),
             "Y": (1,1,0),
             "X": (0.3, 0.3, 0.3),  # gray
+            # Map standard face letters to colors for visualization
+            "U": (1,1,1),   # Up -> White
+            "D": (1,1,0),   # Down -> Yellow
+            "F": (0,1,0),   # Front -> Green
+            "B": (0,0,1),   # Back -> Blue
+            "R": (1,0,0),   # Right -> Red
+            "L": (1,0.5,0), # Left -> Orange
         }
         return colors[c]
 
@@ -481,6 +492,13 @@ class Renderer:
 
         self.draw_text(bx+40, by+15, "SOLVE")
 
+        # -------- CONNECT BUTTON --------
+        self.draw_connect_button(width, height)
+
+        # -------- SCAN STATUS --------
+        if self.is_connected:
+            self.draw_scan_status(width, height)
+
         # -------- PALETTE --------
         self.draw_palette(width, height)
 
@@ -496,10 +514,55 @@ class Renderer:
         glMatrixMode(GL_PROJECTION)
         glPopMatrix()
 
+    def draw_connect_button(self, width, height):
+        button_w = 180
+        button_h = 45
+        # Position to the left of the Solve button
+        # Solve button is at roughly width - 170
+        x = width - 170 - button_w - 20
+        y = 30
+
+        self.connect_button = (x, y, button_w, button_h)
+
+        if self.is_connected:
+            glColor3f(0.2, 0.8, 0.2)  # Green
+            text = "NXT CONNECTED"
+        else:
+            glColor3f(0.4, 0.4, 0.4)  # Grey
+            text = "CONNECT NXT"
+
+        glBegin(GL_QUADS)
+        glVertex2f(x, y)
+        glVertex2f(x + button_w, y)
+        glVertex2f(x + button_w, y + button_h)
+        glVertex2f(x, y + button_h)
+        glEnd()
+
+        glColor3f(1, 1, 1)
+        self.draw_text(x + 20, y + 15, text)
+        
+        # Draw Status Text below button
+        glColor3f(0.7, 0.7, 0.7)
+        self.draw_text(x, y - 20, f"Status: {self.nxt_status_text}")
+
+    def draw_scan_status(self, width, height):
+        y = height - 120
+        start_x = width // 2 - 100
+        # This order matches the ScanCube() function in the NXC code
+        face_order = ["B", "L", "F", "D", "R", "U"]
+        
+        glColor3f(1, 1, 1)
+        self.draw_text(start_x - 130, y, "Scan Progress:")
+
+        for i, face in enumerate(face_order):
+            x = start_x + i * 35
+            color = (0.2, 1.0, 0.2) if face in self.scanned_faces else (0.7, 0.7, 0.7)
+            glColor3f(*color)
+            self.draw_text(x, y, face)
+
     def draw_text(self, x, y, text):
         from OpenGL.GLUT import glutBitmapCharacter, GLUT_BITMAP_HELVETICA_18
         glDisable(GL_LIGHTING)
-        glColor3f(1,1,1)
         glRasterPos2f(x, y)
         for ch in text:
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(ch))
