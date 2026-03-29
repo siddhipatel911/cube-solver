@@ -98,6 +98,13 @@ def main():
                     renderer.is_connected = False
                 return
 
+        # Check Reset button
+        if renderer.reset_button:
+            rx, ry, rw, rh = renderer.reset_button
+            if rx <= x <= rx+rw and ry <= y <= ry+rh:
+                renderer.reset_state()
+                return
+
         # Check Next button
         if renderer.next_button:
             bx, by, bw, bh = renderer.next_button

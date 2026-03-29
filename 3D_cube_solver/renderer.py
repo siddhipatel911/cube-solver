@@ -15,6 +15,7 @@ class Renderer:
         self.palette_positions = []  # will store clickable areas
         self.solve_button = None
         self.connect_button = None
+        self.reset_button = None
         self.is_connected = False
         self.solution_moves = []
         self.scanned_faces = set()
@@ -26,6 +27,19 @@ class Renderer:
         self.animation_speed = 1
         self.nxt_status_text = "Disconnected"
         self.playback_mode = False
+
+    def reset_state(self):
+        self.cube = CubeState()
+        self.scanned_faces.clear()
+        self.solution_moves = []
+        self.current_move_index = 0
+        self.animating = False
+        self.current_move = None
+        self.pick_mode = False
+        self.selected_color = "W"
+        self.playback_mode = False
+        self.rotation_x = 25
+        self.rotation_y = 30
 
     def draw(self):
         width, height = glfw.get_framebuffer_size(glfw.get_current_context())
@@ -314,9 +328,17 @@ class Renderer:
         if base == "L":
             return face_name == "L" or col == 0
         if base == "F":
-            return face_name == "F"
+            return (face_name == "F" or
+                    (face_name == "U" and row == 2) or
+                    (face_name == "D" and row == 0) or
+                    (face_name == "L" and col == 2) or
+                    (face_name == "R" and col == 0))
         if base == "B":
-            return face_name == "B"
+            return (face_name == "B" or
+                    (face_name == "U" and row == 0) or
+                    (face_name == "D" and row == 2) or
+                    (face_name == "L" and col == 0) or
+                    (face_name == "R" and col == 2))
 
         return False
     
@@ -495,6 +517,9 @@ class Renderer:
         # -------- CONNECT BUTTON --------
         self.draw_connect_button(width, height)
 
+        # -------- RESET BUTTON --------
+        self.draw_reset_button(width, height)
+
         # -------- SCAN STATUS --------
         if self.is_connected:
             self.draw_scan_status(width, height)
@@ -544,6 +569,25 @@ class Renderer:
         # Draw Status Text below button
         glColor3f(0.7, 0.7, 0.7)
         self.draw_text(x, y - 20, f"Status: {self.nxt_status_text}")
+
+    def draw_reset_button(self, width, height):
+        button_w = 100
+        button_h = 35
+        x = width - button_w - 20
+        y = height - button_h - 20
+
+        self.reset_button = (x, y, button_w, button_h)
+
+        glColor3f(0.7, 0.2, 0.2) # Reddish
+        glBegin(GL_QUADS)
+        glVertex2f(x, y)
+        glVertex2f(x + button_w, y)
+        glVertex2f(x + button_w, y + button_h)
+        glVertex2f(x, y + button_h)
+        glEnd()
+
+        glColor3f(1, 1, 1)
+        self.draw_text(x + 20, y + 10, "RESET")
 
     def draw_scan_status(self, width, height):
         y = height - 120
