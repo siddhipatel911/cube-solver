@@ -89,12 +89,10 @@ C Color sensor motor
 #define SENSORPOS_HOME      50
 #define SENSORPOS_CENTER    150
 #define SENSORPOS_CORNERS   177
-#define SENSORPOS_EDGES     172
+#define SENSORPOS_EDGES     168
 #define SENSORPOS_LASTEDGE  130
-
 #define OFFSET_EDGE       35
 #define OFFSET_LASTEDGE   200
-
 #define TILTREST  800	// Time (ms) to rest before return tilterarm
 #define SCANSPEED 40
 
