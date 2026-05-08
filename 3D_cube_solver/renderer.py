@@ -679,7 +679,10 @@ class Renderer:
 
         if self.solution_moves:
             self.draw_next_button(solve_x, solve_y + solve_h + 12, solve_w)
-            self.draw_solution_text(x + 20, py + 92, solve_x - x - 40)
+            solution_w = min(int(760 * L["ui"]), L["content_w"] - 160)
+            solution_x = x + (L["content_w"] - solution_w) // 2
+            solution_y = y - btn_h - 140
+            self.draw_solution_text(solution_x, solution_y, solution_w)
 
         self.end_2d()
 
@@ -725,8 +728,8 @@ class Renderer:
 
     def draw_next_button(self, x, y, button_w=150):
         button_h = 46
-        self.next_button = (x, y, button_w, button_h)
-        self.draw_button_2d(x, y, button_w, button_h, "NEXT MOVE", (0.2, 0.7, 0.3))
+        self.next_button = (x, y+100, button_w, button_h)
+        self.draw_button_2d(x, y+100, button_w, button_h, "NEXT MOVE", (0.2, 0.7, 0.3))
 
     def draw_auto_play_button(self, x, y, button_w=150):
         button_h = 46

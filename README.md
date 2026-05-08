@@ -55,6 +55,10 @@ The project uses a virtual COM port created by Windows Bluetooth pairing to bypa
 *   Move format: `U`, `UU` (U2), or `UUU` (U') terminated by a null byte.
 
 ## Demo Video
+
+### Manual Solver Demo
+
+### Robot Solver Demo
 Coming soon ... 
 
 ## Acknowledgments
