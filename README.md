@@ -57,9 +57,10 @@ The project uses a virtual COM port created by Windows Bluetooth pairing to bypa
 ## Demo Video
 
 ### Manual Solver Demo
+[Watch the manual solver demo](https://drive.google.com/file/d/1nxkUumcUpE2jXsIE8EYrzjFKdxBS1YqX/view?usp=drive_link)
 
 ### Robot Solver Demo
-Coming soon ... 
+[Watch the robot solver demo](https://drive.google.com/file/d/1D8yiZerIOPliAmflefi2sBBzLnEeLCHs/view?usp=sharing)
 
 ## Acknowledgments
 

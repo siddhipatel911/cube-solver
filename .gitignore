@@ -1,3 +1,5 @@
 assets/*.mp4
+assets/*.MOV
+assets/*.mov
 __pycache__/
 *.pyc
